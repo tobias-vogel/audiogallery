@@ -18,4 +18,5 @@ Just put this index.php to some webspace and fill the audio directory with mp3s.
 * During mp3 load/buffering there should be an activity dial on the box.
 * Support different image file formats.
 * Make sure it looks reasonably good on an iPad.
+* Use Apple touch favicons and use a full-screen-app and hide the status bar.
 

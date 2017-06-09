@@ -17,15 +17,20 @@ function loadFiles() {
 }
 
 function loadAudioFiles() {
-  $mp3Files = scandir(AUDIO_DIRECTORY);
-  array_splice($mp3Files, 0, 2); # remove . and ..
+  $mp3Files = readFilteredDirectoryContents(AUDIO_DIRECTORY);
   return $mp3Files;
 }
 
 function loadImageFilesFromDisk() {
-  $imageFiles = scandir(IMAGE_DIRECTORY);
-  array_splice($imageFiles, 0, 2); # remove . and ..
+  $imageFiles = readFilteredDirectoryContents(IMAGE_DIRECTORY);
   return $imageFiles;
+}
+
+function readFilteredDirectoryContents($directory) {
+  $elementsToRemove = array('.', '..', '.gitignore');
+  $files = scandir($directory);
+  $files = array_diff($files, $elementsToRemove);
+  return $files; 
 }
 
 function loadImageFileForAudioFile($audioFile, $cachedImageFiles) {
@@ -50,9 +55,14 @@ $files = loadFiles();
 <html>
   <head>
     <title>♫ ♩ ♪♬ 🎹 🎻 🎷 🎺 🎸 🎵 🎶 🎼 </title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="152x152" href="favicon152.png"> </-- taken from https://pixabay.com/de/vogel-zwitschern-gesang-melodie-1295782/ with added #7acaf4 background -->
+    <link rel="icon" href="favicon32.png" type="image/x-icon">
     <style>
       body {
         background-color: lightgoldenrodyellow;
+        padding-top: 20px;
       }
 
       div.audiofile {
