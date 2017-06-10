@@ -2,28 +2,37 @@
 error_reporting(E_ALL);
 
 define('AUDIO_DIRECTORY', 'audio');
-define('IMAGE_DIRECTORY', 'audio');
+define('IMAGE_DIRECTORY', 'images');
 
+define('AUDIOFILE', 'audiofile');
+define('IMAGEFILE', 'imagefile');
+define('BACKGROUND_COLOR', 'background-color');
 
-function loadFiles() {
-  $audioFiles = loadAudioFiles();
-  $cachedImageFiles = loadImageFilesFromDisk();
-  $result = array();
+function loadEntries() {
+  /*return array(
+    "a" => array(AUDIOFILE => "a.mp3", IMAGEFILE => "a.jpg", BACKGROUND_COLOR => md5("a")),
+    "b" => array(AUDIOFILE => "b.mp3", IMAGEFILE => "b.jpg", BACKGROUND_COLOR => md5("b")),
+    "c" => array(AUDIOFILE => "c.mp3", IMAGEFILE => "c.jpg", BACKGROUND_COLOR => md5("c"))
+  );*/
+  $audioFiles = readFilteredDirectoryContents(AUDIO_DIRECTORY);
+  $cachedImageFiles = readFilteredDirectoryContents(IMAGE_DIRECTORY);
+  $entries = array();
   foreach ($audioFiles as $audioFile) {
-    $imageFile = loadImageFileForAudioFile($audioFile, $cachedImageFiles);
-    $result[$audioFile] = $imageFile;
+    $entry = array();
+    $entry[AUDIOFILE] = $audioFile;
+    $baseFilename = removeExtension($audioFile);
+    $entry[BACKGROUND_COLOR] = substr(md5($baseFilename), 0, 6);
+    $imageFile = loadImageFileForAudioFile($baseFilename, $cachedImageFiles);
+    if ($imageFile != null) {
+      $entry[IMAGEFILE] = $imageFile;
+    }
+    $entries[$baseFilename] = $entry;
   }
-  return $result;
+  return $entries;
 }
 
-function loadAudioFiles() {
-  $mp3Files = readFilteredDirectoryContents(AUDIO_DIRECTORY);
-  return $mp3Files;
-}
-
-function loadImageFilesFromDisk() {
-  $imageFiles = readFilteredDirectoryContents(IMAGE_DIRECTORY);
-  return $imageFiles;
+function removeExtension($filename) {
+  return preg_replace('/\.[^.]*$/', '', $filename);
 }
 
 function readFilteredDirectoryContents($directory) {
@@ -33,12 +42,12 @@ function readFilteredDirectoryContents($directory) {
   return $files; 
 }
 
-function loadImageFileForAudioFile($audioFile, $cachedImageFiles) {
+function loadImageFileForAudioFile($baseFilename, $cachedImageFiles) {
   return null;
   /*
   pseudo code ahead
-  $audioFile.removeExtension();
-  $targetImageFile = $audioFile . '.jpg';
+  map image filenames to their basenames, then match against input
+  $targetImageFile = $baseFilename . '.jpg';
   if ($targetImageFile in $cachedImageFiles) {
     return $targetImageFile;
   }
@@ -50,7 +59,7 @@ function loadImageFileForAudioFile($audioFile, $cachedImageFiles) {
   */
 }
 
-$files = loadFiles();
+$entries = loadEntries();
 ?>
 <html>
   <head>
@@ -117,9 +126,9 @@ $files = loadFiles();
   </head>
   <body>
 <?php
-  foreach ($files as $audio => $image) {
-    echo '<div class="audiofile" onclick="togglePlay(\'' . $audio . '\');">' . $audio . ' ' . $image . "\n";
-    echo '  <audio id="' . $audio . '" src="' . AUDIO_DIRECTORY . '/' . $audio . '" type="audio/mp3"></audio>' . "\n";
+  foreach ($entries as $id => $entry) {
+    echo '<div class="audiofile" onclick="togglePlay(\'' . $id . '\');" style="background-color: ' . $entry[BACKGROUND_COLOR] . (array_key_exists(IMAGEFILE, $entry) ? '; background-image: img(' . $entry[IMAGEFILE] . ');' : '') . '">' . $id . "\n";
+    echo '  <audio id="' . $id . '" src="' . AUDIO_DIRECTORY . '/' . $entry[AUDIOFILE] . '" type="audio/mp3"></audio>' . "\n";
     echo '</div>' . "\n";
   }
 ?>
